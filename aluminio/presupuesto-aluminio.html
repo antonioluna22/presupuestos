@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Presupuesto - Maestro de aluminio</title>
+<style>
+:root{--bg:#f4f7f9;--card:#fff;--tx:#1d2428;--mu:#6b7780;--ac:#2f6f8f;--bd:#dbe3e8;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121619;--card:#1b2126;--tx:#e9eff2;--mu:#98a5ad;--ac:#6fb0d2;--bd:#323b42}}
+:root[data-theme="dark"]{--bg:#121619;--card:#1b2126;--tx:#e9eff2;--mu:#98a5ad;--ac:#6fb0d2;--bd:#323b42}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.4}
+main{max-width:760px;margin:0 auto;padding:16px}
+h1{font-size:1.3rem;margin:8px 0 12px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;align-items:end}
+label{font-size:.78rem;color:var(--mu);display:block;margin-bottom:3px}
+input,select{width:100%;padding:9px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font-size:.95rem}
+.add{padding:10px;border:0;border-radius:8px;background:var(--ac);color:#fff;font-size:.95rem;cursor:pointer}
+.wrap{overflow-x:auto;margin-top:14px}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th,td{padding:8px 6px;border-bottom:1px solid var(--bd);text-align:left;white-space:nowrap}
+th{color:var(--mu);font-weight:500;font-size:.78rem}
+td.n,th.n{text-align:right}
+.x{background:none;border:0;color:var(--mu);cursor:pointer;font-size:1rem}.x:hover{color:var(--ac)}
+.clear{margin-top:14px;width:100%;padding:10px;border:1px solid var(--ac);background:none;color:var(--ac);border-radius:8px;font-size:.95rem;cursor:pointer}
+.tot{margin-top:14px;display:grid;gap:6px}
+.tot div{display:flex;justify-content:space-between}
+.tot .f{font-size:1.2rem;font-weight:700;color:var(--ac);border-top:2px solid var(--bd);padding-top:8px}
+.empty{color:var(--mu);text-align:center;padding:14px}
+</style></head><body><main>
+<h1>🪟 Presupuesto - Maestro de aluminio</h1>
+<div class="card">
+ <div class="row">
+  <div><label>Sección</label><select id="m"><option>Vidrio</option><option>Herrajes</option><option>Aluminio</option><option>Extras</option></select></div>
+  <div><label>Descripción (opcional)</label><input id="d" placeholder="ej. vidrio 6 mm"></div>
+  <div><label>Precio del material</label><input id="p" type="number" min="0" step="0.01" placeholder="0.00"></div>
+  <button class="add" id="a">Agregar</button>
+ </div>
+ <div class="wrap"><table><thead><tr><th>Sección</th><th>Descripción</th><th class="n">Precio</th><th></th></tr></thead><tbody id="b"></tbody></table></div>
+ <div class="tot">
+  <div><span>Vidrio</span><b id="v">$0.00</b></div>
+  <div><span>Herrajes</span><b id="h">$0.00</b></div>
+  <div><span>Aluminio</span><b id="al">$0.00</b></div>
+  <div><span>Extras</span><b id="ex">$0.00</b></div>
+  <div><span>Suma de materiales</span><b id="mat">$0.00</b></div>
+  <div><span>Ganancia (60%)</span><b id="g">$0.00</b></div>
+  <div class="f"><span>Total del presupuesto</span><span id="tt">$0.00</span></div>
+ </div>
+ <button class="clear" id="clr">Borrar todo</button>
+</div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const money=n=>'$'+n.toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2});
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let L=[];
+function render(){
+ $('b').innerHTML=L.length?L.map((x,i)=>`<tr><td>${x.m}</td><td>${esc(x.d)}</td><td class="n">${money(x.p)}</td><td><button class="x" onclick="L.splice(${i},1);render()" title="Borrar este renglón" aria-label="Borrar este renglón">🗑️</button></td></tr>`).join(''):'<tr><td colspan="4" class="empty">Aún no hay materiales</td></tr>';
+ const s=m=>L.filter(x=>x.m===m).reduce((a,x)=>a+x.p,0);
+ const t=s('Vidrio')+s('Herrajes')+s('Aluminio')+s('Extras');
+ $('ex').textContent=money(s('Extras'));
+ $('v').textContent=money(s('Vidrio'));$('h').textContent=money(s('Herrajes'));$('al').textContent=money(s('Aluminio'));
+ $('mat').textContent=money(t);$('g').textContent=money(t*.6);$('tt').textContent=money(t*1.6);
+}
+$('a').onclick=()=>{const p=parseFloat($('p').value);
+ if(!(p>=0))return alert('Escribe un precio válido');
+ L.push({m:$('m').value,d:$('d').value,p});$('d').value=$('p').value='';render()};
+$('clr').onclick=()=>{if(L.length&&confirm('¿Borrar todo el presupuesto?')){L=[];render()}};
+render();
+</script></body></html>

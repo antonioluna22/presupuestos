@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Presupuesto - Diseñadora de modas</title>
+<style>
+:root{--bg:#faf7f4;--card:#fff;--tx:#241f1c;--mu:#7a706a;--ac:#b4476b;--bd:#e5ddd6;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171412;--card:#221e1b;--tx:#f1ebe6;--mu:#a39a93;--ac:#e07a9c;--bd:#3a3430}}
+:root[data-theme="dark"]{--bg:#171412;--card:#221e1b;--tx:#f1ebe6;--mu:#a39a93;--ac:#e07a9c;--bd:#3a3430}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.4}
+main{max-width:760px;margin:0 auto;padding:16px}
+h1{font-size:1.3rem;margin:8px 0 12px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;align-items:end}
+label{font-size:.78rem;color:var(--mu);display:block;margin-bottom:3px}
+input,select{width:100%;padding:9px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font-size:.95rem}
+.add{padding:10px;border:0;border-radius:8px;background:var(--ac);color:#fff;font-size:.95rem;cursor:pointer}
+.wrap{overflow-x:auto;margin-top:14px}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th,td{padding:8px 6px;border-bottom:1px solid var(--bd);text-align:left;white-space:nowrap}
+th{color:var(--mu);font-weight:500;font-size:.78rem}
+td.n,th.n{text-align:right}
+.x{background:none;border:0;color:var(--mu);cursor:pointer;font-size:1rem}.x:hover{color:var(--ac)}
+.clear{margin-top:14px;width:100%;padding:10px;border:1px solid var(--ac);background:none;color:var(--ac);border-radius:8px;font-size:.95rem;cursor:pointer}
+.tot{margin-top:14px;display:grid;gap:6px}
+.tot div{display:flex;justify-content:space-between}
+.tot .f{font-size:1.2rem;font-weight:700;color:var(--ac);border-top:2px solid var(--bd);padding-top:8px}
+.empty{color:var(--mu);text-align:center;padding:14px}
+</style></head><body><main>
+<h1>🧵 Presupuesto - Diseñadora de modas</h1>
+<div class="card">
+ <div class="row">
+  <div><label>Material</label><select id="m"><option>Tela</option><option>Hilo</option><option>Cierres</option><option>Resorte</option><option>Listón</option><option>Encaje</option><option>Pedrería</option><option>Aplicaciones</option><option>Pegamento</option><option>Pintura</option><option>Botones</option><option>Broches</option><option>Bies</option><option>Extras</option></select></div>
+  <div><label>Descripción (opcional)</label><input id="d" placeholder="ej. seda azul"></div>
+  <div><label>Precio por unidad / metro</label><input id="p" type="number" min="0" step="0.01" placeholder="0.00"></div>
+  <div><label id="ql">Metros</label><input id="q" type="number" min="0" step="0.01" placeholder="0"></div>
+  <button class="add" id="a">Agregar</button>
+ </div>
+ <div class="wrap"><table><thead><tr><th>Material</th><th>Descripción</th><th class="n">Precio</th><th class="n">Cant./Metros</th><th class="n">Subtotal</th><th></th></tr></thead><tbody id="b"></tbody></table></div>
+ <div class="tot">
+  <div><span>Costo de materiales</span><b id="mat">$0.00</b></div>
+  <div><span>Mano de obra (igual al costo de materiales)</span><b id="mo">$0.00</b></div>
+  <div class="f"><span>Total del presupuesto</span><span id="tt">$0.00</span></div>
+ </div>
+ <button class="clear" id="clr">Borrar todo</button>
+</div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const money=n=>'$'+n.toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2});
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let L=[];
+$('m').onchange=()=>{$('ql').textContent=$('m').value==='Tela'?'Metros':'Cantidad'};
+function render(){
+ $('b').innerHTML=L.length?L.map((x,i)=>`<tr><td>${x.m}</td><td>${esc(x.d)}</td><td class="n">${money(x.p)}</td><td class="n">${x.q}${x.m==='Tela'?' m':''}</td><td class="n">${money(x.p*x.q)}</td><td><button class="x" onclick="L.splice(${i},1);render()" title="Borrar este renglón" aria-label="Borrar este renglón">🗑️</button></td></tr>`).join(''):'<tr><td colspan="6" class="empty">Aún no hay materiales</td></tr>';
+ const t=L.reduce((s,x)=>s+x.p*x.q,0);
+ $('mat').textContent=money(t);$('mo').textContent=money(t);$('tt').textContent=money(t*2);
+}
+$('a').onclick=()=>{const p=parseFloat($('p').value),q=parseFloat($('q').value);
+ if(!(p>=0)||!(q>0))return alert('Escribe un precio y una cantidad válidos');
+ L.push({m:$('m').value,d:$('d').value,p,q});$('d').value=$('p').value=$('q').value='';render()};
+$('clr').onclick=()=>{if(L.length&&confirm('¿Borrar todo el presupuesto?')){L=[];render()}};
+render();
+</script></body></html>
